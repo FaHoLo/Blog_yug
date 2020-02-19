@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from blog.models import Comment, Post, Tag
-from django.db.models import Count
+from django.db.models import Count, Prefetch
 
 
 def get_related_posts_count(tag):
@@ -24,16 +24,20 @@ def serialize_post_optimized(post):
 def serialize_tag(tag):
     return {
         'title': tag.title,
-        'posts_with_tag': len(Post.objects.filter(tags=tag)),
+        'posts_with_tag': tag.posts_count,
     }
 
 
 def index(request):
     most_popular_posts = Post.objects.popular() \
-        .prefetch_related('author')[:5] \
+        .prefetch_related('author') \
+        .prefetch_tags_with_posts_count()[:5] \
         .fetch_with_comments_count()
 
-    most_fresh_posts = Post.objects.annotate(comments_count=Count('comments')).prefetch_related('author').order_by('-published_at')[:5]
+    most_fresh_posts = Post.objects.annotate(comments_count=Count('comments')) \
+        .prefetch_related('author') \
+        .prefetch_tags_with_posts_count() \
+        .order_by('-published_at')[:5]
 
     most_popular_tags = Tag.objects.popular()[:5]
 
@@ -58,7 +62,7 @@ def post_detail(request, slug):
 
     likes = post.likes.all()
 
-    related_tags = post.tags.all()
+    related_tags = post.tags.all().annotate(posts_count=Count('posts'))
 
     serialized_post = {
         "title": post.title,
@@ -76,6 +80,7 @@ def post_detail(request, slug):
 
     most_popular_posts = Post.objects.popular() \
         .prefetch_related('author')[:5] \
+        .prefetch_tags_with_posts_count() \
         .fetch_with_comments_count()
 
     context = {
@@ -93,9 +98,13 @@ def tag_filter(request, tag_title):
 
     most_popular_posts = Post.objects.popular() \
         .prefetch_related('author')[:5] \
+        .prefetch_tags_with_posts_count() \
         .fetch_with_comments_count()
 
-    related_posts = tag.posts.all().annotate(comments_count=Count('comments')).prefetch_related('author')[:20]
+    related_posts = tag.posts.all() \
+        .annotate(comments_count=Count('comments')) \
+        .prefetch_tags_with_posts_count() \
+        .prefetch_related('author')[:20]
 
     context = {
         "tag": tag.title,
