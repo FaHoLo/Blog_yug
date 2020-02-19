@@ -60,7 +60,7 @@ def post_detail(request, slug):
         serialized_comments.append({
             'text': comment.text,
             'published_at': comment.published_at,
-            'author': comment.author.username,
+            'author': comment.author,
         })
 
     serialized_post = {
