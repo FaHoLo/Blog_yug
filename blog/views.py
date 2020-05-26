@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from blog.models import Comment, Post, Tag
+from blog.models import Post, Tag
 from django.db.models import Count
 
 
@@ -54,7 +54,7 @@ def post_detail(request, slug):
         .prefetch_related('comments__author') \
         .prefetch_tags_with_posts_count() \
         .get(slug=slug)
-        
+
     serialized_comments = []
     for comment in post.comments.all():
         serialized_comments.append({
