@@ -12,7 +12,7 @@ ALLOWED_HOSTS = []
 
 SECRET_KEY = os.getenv("SECRET_KEY", "REPLACE_ME")
 
-DEBUG = env.bool("DEBUG", True)
+DEBUG = env.bool("DEBUG", False)
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -46,7 +46,7 @@ TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
-STATIC_ROOT = ''
+STATIC_ROOT = 'staticfiles'
 
 TEMPLATES = [
     {
